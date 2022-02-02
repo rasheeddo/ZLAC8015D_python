@@ -94,6 +94,33 @@ class ZLAC8015D:
 		## 8 inches wheel
 		self.travel_in_one_rev = 0.655
 		self.cpr = 16385
+		self.R_Wheel = 0.105 #meter
+
+	## Some time if read immediatly after write, it would show ModbusIOException when get data from registers
+	def modbus_fail_read_handler(self, ADDR, WORD):
+
+		read_success = False
+		reg = [None]*WORD
+		while not read_success:
+			result = self.client.read_holding_registers(ADDR, WORD, unit=self.ID)
+			try:
+				for i in range(WORD):
+					reg[i] = result.registers[i]
+				read_success = True
+			except AttributeError:
+				pass
+
+		return reg
+
+	def rpm_to_radPerSec(self, rpm):
+		return rpm*2*np.pi/60.0
+
+	def rpm_to_linear(self, rpm):
+
+		W_Wheel = self.rpm_to_radPerSec(rpm)
+		V = W_Wheel*self.R_Wheel
+
+		return V
 
 	def set_mode(self, MODE):
 		if MODE == 1:
@@ -108,6 +135,15 @@ class ZLAC8015D:
 
 		result = self.client.write_register(self.OPR_MODE, MODE, unit=self.ID)
 		return result
+
+	def get_mode(self):
+
+		# result = self.client.read_holding_registers(self.OPR_MODE, 1, unit=self.ID)
+		registers = self.modbus_fail_read_handler(self.OPR_MODE, 1)
+
+		mode = registers[0]
+
+		return mode
 
 	def enable_motor(self):
 		result = self.client.write_register(self.CONTROL_REG, self.ENABLE, unit=self.ID)
@@ -188,13 +224,25 @@ class ZLAC8015D:
 
 	def get_rpm(self):
 
-		rpms = self.client.read_holding_registers(self.L_FB_RPM, 2, unit=self.ID)
 
-		fb_L_rpm = np.int16(rpms.registers[0])/10.0
-		fb_R_rpm = np.int16(rpms.registers[1])/10.0 
+		# rpms = self.client.read_holding_registers(self.L_FB_RPM, 2, unit=self.ID)
+		# fb_L_rpm = np.int16(rpms.registers[0])/10.0
+		# fb_R_rpm = np.int16(rpms.registers[1])/10.0
+
+		registers = self.modbus_fail_read_handler(self.L_FB_RPM, 2)
+		fb_L_rpm = np.int16(registers[0])/10.0
+		fb_R_rpm = np.int16(registers[1])/10.0
 
 		return fb_L_rpm, fb_R_rpm
 
+	def get_linear_velocities(self):
+
+		rpmL, rpmR = self.get_rpm()
+
+		VL = self.rpm_to_linear(rpmL)
+		VR = self.rpm_to_linear(-rpmR)
+
+		return VL, VR
 
 	def map(self, val, in_min, in_max, out_min, out_max):
 
@@ -244,18 +292,36 @@ class ZLAC8015D:
 
 	def get_wheels_travelled(self):
 
-		result = self.client.read_holding_registers(self.L_FB_POS_HI, 4, unit=self.self.ID)
+		# read_success = False
+		# while not read_success:
 
-		l_pul_hi = result.registers[0]
-		l_pul_lo = result.registers[1]
-		r_pul_hi = result.registers[2]
-		r_pul_lo = result.registers[3]
+		# 	result = self.client.read_holding_registers(self.L_FB_POS_HI, 4, unit=self.ID)
+		# 	try:
+		# 		l_pul_hi = result.registers[0]
+		# 		l_pul_lo = result.registers[1]
+		# 		r_pul_hi = result.registers[2]
+		# 		r_pul_lo = result.registers[3]
 
-		l_pulse = ((l_pul_hi & 0xFF) << 8) | (l_pul_lo & 0xFF)
-		r_pulse = ((r_pul_hi & 0xFF) << 8) | (r_pul_lo & 0xFF)
+		# 		l_pulse = ((l_pul_hi & 0xFFFF) << 16) | (l_pul_lo & 0xFFFF)
+		# 		r_pulse = ((r_pul_hi & 0xFFFF) << 16) | (r_pul_lo & 0xFFFF)
+		# 		l_travelled = (float(l_pulse)/self.cpr)*self.travel_in_one_rev  # unit in meter
+		# 		r_travelled = (float(r_pulse)/self.cpr)*self.travel_in_one_rev  # unit in meter
 
-		l_travelled = (l_pulse/self.cpr)*self.travel_in_one_rev  # unit in meter
-		r_travelled = (r_pulse/self.cpr)*self.travel_in_one_rev  # unit in meter
+		# 		read_success = True
+
+		# 	except AttributeError:
+		# 		# print("error")
+		# 		pass
+
+		registers = self.modbus_fail_read_handler(self.L_FB_POS_HI, 4)
+		l_pul_hi = registers[0]
+		l_pul_lo = registers[1]
+		r_pul_hi = registers[2]
+		r_pul_lo = registers[3]
+
+		l_pulse = np.int32(((l_pul_hi & 0xFFFF) << 16) | (l_pul_lo & 0xFFFF))
+		r_pulse = np.int32(((r_pul_hi & 0xFFFF) << 16) | (r_pul_lo & 0xFFFF))
+		l_travelled = (float(l_pulse)/self.cpr)*self.travel_in_one_rev  # unit in meter
+		r_travelled = (float(r_pulse)/self.cpr)*self.travel_in_one_rev  # unit in meter
 
 		return l_travelled, r_travelled
-
