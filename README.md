@@ -31,6 +31,8 @@ sudo python setup.py install
 ## or python3
 sudo python3 setup.py install
 
+#3. add user to dialout group
+sudo usermod -a -G dialout $USER
 ```
 ## Features
 
