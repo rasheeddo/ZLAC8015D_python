@@ -2,11 +2,13 @@
 from pymodbus.client.sync import ModbusSerialClient as ModbusClient
 import numpy as np
 
-class ZLAC8015D:
+class Controller:
 
-	def __init__(self):
+	def __init__(self, port="/dev/ttyUSB0"):
 
-		self.client = ModbusClient(method='rtu', port='/dev/ttyUSB0', baudrate=115200, timeout=1)
+		self._port = port
+
+		self.client = ModbusClient(method='rtu', port=self._port, baudrate=115200, timeout=1)
 
 		self.client.connect()
 

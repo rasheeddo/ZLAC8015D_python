@@ -1,8 +1,8 @@
 
-from ZLAC8015D import *
+from zlac8015d import ZLAC8015D
 import time
 
-motors = ZLAC8015D()
+motors = ZLAC8015D.Controller()
 
 motors.disable_motor()
 
