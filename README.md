@@ -1,6 +1,6 @@
-# A Python API of ZLAC8015D AC Servo Driver
+# A Python package of ZLAC8015D AC Servo Driver
 
-This is a python API by using pymodbus to be able to access registers of ZLAC8015D.
+This is a simple python package by using pymodbus to be able to access registers of ZLAC8015D.
 
 You can find more detail of ZLAC8015D on their official site [here](http://www.zlrobotmotor.com/info/401.html).
 
@@ -17,11 +17,21 @@ Along with the driver, you will need to have RS485-USB converter to plug it on y
 ![](images/wiring_diagram.png)
 
 
-## Dependency
+## Installation
+```sh
+#1. Install dependecies
+## For python2
+sudo pip install pymodbus
+## or python3
+sudo pip3 install pymodbus
 
-	sudo pip install pymodbus
+#2. Install this package
+## For python2
+sudo python setup.py install
+## or python3
+sudo python3 setup.py install
 
-
+```
 ## Features
 
 - Velocity control, we can send command RPMs and also read feedback RPMs from the motors, please check on `test_speed_control.py`
