@@ -2,7 +2,7 @@
 from zlac8015d import ZLAC8015D
 import time
 
-motors = ZLAC8015D.Controller()
+motors = ZLAC8015D.Controller(port="/dev/ttyUSB0")
 
 motors.disable_motor()
 
@@ -19,19 +19,20 @@ cmds = [-50, 30]
 
 motors.set_rpm(cmds[0],cmds[1])
 
-start_time = time.time()
+last_time = time.time()
 i = 0
 while True:
 	try:
-		period = time.time() - start_time
+		period = time.time() - last_time
+		# motors.set_rpm(cmds[0],cmds[1])
 		rpmL, rpmR = motors.get_rpm()
 
-		print("rpmL: {:.1f} | rpmR: {:.1f}".format(rpmL,rpmR))
-		time.sleep(1)
-
-		# if (i % 10) == 0:
+		print("period: {:.4f} rpmL: {:.1f} | rpmR: {:.1f}".format(period,rpmL,rpmR))
+		time.sleep(0.01)
 			
 
 	except KeyboardInterrupt:
 		motors.disable_motor()
 		break
+
+	last_time = time.time()

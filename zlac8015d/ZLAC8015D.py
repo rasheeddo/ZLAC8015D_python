@@ -109,7 +109,8 @@ class Controller:
 				for i in range(WORD):
 					reg[i] = result.registers[i]
 				read_success = True
-			except AttributeError:
+			except AttributeError as e:
+				print(e)
 				pass
 
 		return reg

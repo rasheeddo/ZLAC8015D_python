@@ -2,7 +2,7 @@
 from zlac8015d import ZLAC8015D
 import time
 
-motors = ZLAC8015D.Controller()
+motors = ZLAC8015D.Controller(port="/dev/ttyUSB0")
 
 motors.disable_motor()
 
