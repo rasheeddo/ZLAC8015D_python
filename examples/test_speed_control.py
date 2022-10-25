@@ -21,13 +21,14 @@ motors.set_rpm(cmds[0],cmds[1])
 
 last_time = time.time()
 i = 0
+period = 0.0
 while True:
 	try:
-		period = time.time() - last_time
 		# motors.set_rpm(cmds[0],cmds[1])
 		rpmL, rpmR = motors.get_rpm()
 
 		print("period: {:.4f} rpmL: {:.1f} | rpmR: {:.1f}".format(period,rpmL,rpmR))
+		period = time.time() - last_time
 		time.sleep(0.01)
 			
 
