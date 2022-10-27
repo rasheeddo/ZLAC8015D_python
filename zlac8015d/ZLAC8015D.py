@@ -328,3 +328,16 @@ class Controller:
 		r_travelled = (float(r_pulse)/self.cpr)*self.travel_in_one_rev  # unit in meter
 
 		return l_travelled, r_travelled
+
+	def get_wheels_tick(self):
+
+		registers = self.modbus_fail_read_handler(self.L_FB_POS_HI, 4)
+		l_pul_hi = registers[0]
+		l_pul_lo = registers[1]
+		r_pul_hi = registers[2]
+		r_pul_lo = registers[3]
+
+		l_tick = np.int32(((l_pul_hi & 0xFFFF) << 16) | (l_pul_lo & 0xFFFF))
+		r_tick = np.int32(((r_pul_hi & 0xFFFF) << 16) | (r_pul_lo & 0xFFFF))
+
+		return l_tick, r_tick
